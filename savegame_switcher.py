@@ -3,6 +3,7 @@ from tkinter import filedialog, simpledialog
 from time import localtime, strftime
 import os
 import scan
+import json
 
 window = Tk()
 
@@ -33,13 +34,13 @@ def save():
     print("save")
 
 #frames
-frame_lettering = Frame(master=window, bg="red")
+frame_lettering = Frame(master=window, )#bg="red")
 frame_lettering.place(x=0, y=0, width=1100, height=50)
 
-frame_listboxes = Frame(master=window, bg="blue")
+frame_listboxes = Frame(master=window, )#bg="blue")
 frame_listboxes.place(x=0, y=50, width=1100, height=400)
 
-frame_log = Frame(master=window, bg="green")
+frame_log = Frame(master=window, )#bg="green")
 frame_log.place(x=0, y=450, width=800, height=200)
 
 #frame lettering
@@ -78,8 +79,52 @@ scrollbar_description.place(x=1040, y=0, height=350)
 scrollbar_description.config(command=text_description.yview)
 text_description.config(yscrollcommand= scrollbar_description.set)
 
+def listbox_left_selected(evt):
+    w = evt.widget
+    index = int(w.curselection()[0])
+    value = w.get(index)
+    
+    label_savegame_name.config(text=value)
+    pathes[value]
+
+def listbox_right_selected(evt):
+    w = evt.widget
+    index = int(w.curselection()[0])
+    value = w.get(index)
+    
+    label_savegame_name.config(text=value)
+
+listbox_left.bind('<<ListboxSelect>>', listbox_left_selected) #bind: when you select a item the function will start
+listbox_right.bind('<<ListboxSelect>>', listbox_right_selected)
+
 def save_name_desc():
-    print("desc savee aaaaaaaaa")
+    new_name = label_savegame_name.cget("text") #get name
+    new_description = text_description.get("1.0",'end-1c') #get description
+
+    left = listbox_left.curselection()
+    right = listbox_right.curselection()
+    
+    if listbox_left.get(ANCHOR) != "": #try to get out of the selected item the slected anchor
+        anchor = listbox_left.get(ANCHOR)
+    elif listbox_right.get(ANCHOR) != "":
+        anchor = listbox_right.get(ANCHOR)
+
+    pathes[new_name] = pathes.pop(anchor)
+
+    if right != "": #decide what listbox is selected, to make the new name visible in the listboxes
+        listbox_right.delete(right)
+        size = listbox_right.size()
+        listbox_right.insert(right, new_name)
+    elif left != "":
+        listbox_left.delete(left)
+        size = listbox_left.size()
+        listbox_left.insert(left, new_name)
+
+    path = pathes[new_name]["path"]
+    for_json = {"name" : new_name, "description" : new_description} #make the dictonary that we store
+
+    with open("sample.json", "w") as outfile: #save as json in savegame folder
+        json.dump(for_json, outfile, indent=4)
 
 button_save = Button(master=frame_listboxes, text="Save name and description!", command=save_name_desc)
 button_save.place(x=720, y=360)
@@ -95,6 +140,7 @@ def move_right():
     listbox_left.delete(number)
     size = listbox_right.size()
     listbox_right.insert(size, name)
+    #need to put in variable what you need to copy!
 
 def move_left():
     print("Right to left")
@@ -138,18 +184,16 @@ def savegame_start_scan():
         log_post("Found savegame: " + items)
         listbox_right.insert(0, items)
         
-        properties = {"path" : "savegames"}
-        pathes[items] = properties
+        path = os.path.join("savegames" , items)
 
-        print(pathes)
+        properties = {"path" : path}
+        pathes[items] = properties
 
     path = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech")
     log_post("Get savegame path: " + path)
 
     savegames = []
     savegames = scan.scan(path)
-
-    print(scan.scan(path))
 
     for items in savegames:
         log_post("Found savegame: " + items)
@@ -158,6 +202,12 @@ def savegame_start_scan():
             listbox_left.insert(0, items)
         else:
             listbox_right.insert(0, items)
+        
+        path_savegame = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech",items)
+        properties = {"path" : path_savegame}
+        pathes[items] = properties
+        
+    print(pathes)
 
 savegame_start_scan()
 log_post("Savegame Switcher started!")
