@@ -7,7 +7,7 @@ import json
 
 window = Tk()
 
-window.title("Savegame Switcher")
+window.title("MySavegameSwitcher")
 window.iconbitmap("icons/icon.ico")
 window.geometry("1100x650")
 #window.resizable(width=0, height=0)
@@ -40,7 +40,7 @@ frame_lettering.place(x=0, y=0, width=1100, height=50)
 frame_listboxes = Frame(master=window, )#bg="blue")
 frame_listboxes.place(x=0, y=50, width=1100, height=400)
 
-frame_log = Frame(master=window, )#bg="green")
+frame_log = Frame(master=window, )#bg="green") 
 frame_log.place(x=0, y=450, width=800, height=200)
 
 #frame lettering
@@ -64,10 +64,10 @@ button_rename_savegame = Button(master=frame_lettering, text="Rename", command=r
 button_rename_savegame.place(x=1000, y=5, height=25)
 
 #frame listboxes
-listbox_left = Listbox(master=frame_listboxes)
+listbox_left = Listbox(master=frame_listboxes, exportselection=0)
 listbox_left.place(x=30, y=0, width=300, height=350)
 
-listbox_right = Listbox(master=frame_listboxes)
+listbox_right = Listbox(master=frame_listboxes, exportselection=0)
 listbox_right.place(x=400, y=0, width=300, height=350)
 
 text_description = Text(master=frame_listboxes)
@@ -80,18 +80,23 @@ scrollbar_description.config(command=text_description.yview)
 text_description.config(yscrollcommand= scrollbar_description.set)
 
 def listbox_left_selected(evt):
-    w = evt.widget
-    index = int(w.curselection()[0])
-    value = w.get(index)
+    listbox_left = evt.widget
+    index = listbox_left.curselection()
+    value = listbox_left.get(index)
     
+    #listbox_left.selection_clear(0, END)
+
     label_savegame_name.config(text=value)
-    pathes[value]
+    #pathes[value]
 
 def listbox_right_selected(evt):
-    w = evt.widget
-    index = int(w.curselection()[0])
-    value = w.get(index)
+    listbox_right = evt.widget
+    index = listbox_right.curselection()
+    #print("INDEX RECHTS" + str(index))
+    value = listbox_right.get(index)
     
+    #listbox_left.selection_clear(0, END)
+
     label_savegame_name.config(text=value)
 
 listbox_left.bind('<<ListboxSelect>>', listbox_left_selected) #bind: when you select a item the function will start
@@ -103,7 +108,7 @@ def save_name_desc():
 
     left = listbox_left.curselection()
     right = listbox_right.curselection()
-    
+
     if listbox_left.get(ANCHOR) != "": #try to get out of the selected item the slected anchor
         anchor = listbox_left.get(ANCHOR)
     elif listbox_right.get(ANCHOR) != "":
@@ -111,14 +116,14 @@ def save_name_desc():
 
     pathes[new_name] = pathes.pop(anchor)
 
-    if right != "": #decide what listbox is selected, to make the new name visible in the listboxes
-        listbox_right.delete(right)
-        size = listbox_right.size()
-        listbox_right.insert(right, new_name)
-    elif left != "":
+    if listbox_left.get(ANCHOR) != "": #decide what listbox is selected, to make the new name visible in the listboxes
         listbox_left.delete(left)
         size = listbox_left.size()
         listbox_left.insert(left, new_name)
+    elif listbox_right.get(ANCHOR) != "":
+        listbox_right.delete(right)
+        size = listbox_right.size()
+        listbox_right.insert(right, new_name)
 
     path = pathes[new_name]["path"]
     for_json = {"name" : new_name, "description" : new_description} #make the dictonary that we store
