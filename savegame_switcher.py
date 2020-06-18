@@ -125,10 +125,14 @@ def save_name_desc():
         size = listbox_right.size()
         listbox_right.insert(right, new_name)
 
-    path = pathes[new_name]["path"]
+    basic_path = pathes[new_name]["path"]
+    path_a_name = os.path.join(basic_path, new_name)
+    file_save = path_a_name + ".json"
     for_json = {"name" : new_name, "description" : new_description} #make the dictonary that we store
+    
+    print("Saved under: " + file_save)
 
-    with open("sample.json", "w") as outfile: #save as json in savegame folder
+    with open(file_save, "w") as outfile: #save as json in savegame folder
         json.dump(for_json, outfile, indent=4)
 
 button_save = Button(master=frame_listboxes, text="Save name and description!", command=save_name_desc)
