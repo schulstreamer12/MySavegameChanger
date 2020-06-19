@@ -4,10 +4,11 @@ from time import localtime, strftime
 import os
 import scan
 import json
+import shutil
 
 window = Tk()
 
-window.title("MySavegameSwitcher")
+window.title("MySavegameChanger")
 window.iconbitmap("icons/icon.ico")
 window.geometry("1100x650")
 #window.resizable(width=0, height=0)
@@ -30,8 +31,22 @@ def log_clear():
     text_log.delete(1.0,END)
     text_log.config(state=DISABLED)
 
+copy_in_appdata = ""
+copy_out_appdata = ""
+
 def save():
-    print("save")
+    #print("save")
+    #print("Copy in appdata: " + copy_in_appdata)
+    #print("Copy out appdata: " + copy_out_appdata)
+
+    path_appdata = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech", "My Summer Car")
+    path_savegames = os.path.join("savegames", copy_out_appdata) #os.path.basename(os.path.normpath(copy_out_appdata)))
+
+    #print("Path appdata: " + path_appdata)
+    #print("Path savegames: " + path_savegames)
+    print(copy_out_appdata)
+    #shutil.move(copy_in_appdata, path_appdata)
+    shutil.move(copy_out_appdata, path_savegames)
 
 #frames
 frame_lettering = Frame(master=window, )#bg="red")
@@ -85,8 +100,6 @@ def listbox_left_selected(evt):
     value = listbox_left.get(index)
     
     label_savegame_name.config(text=value)
-    
-    print(pathes[value])
 
     text_description.delete(1.0,END)
     text_description.insert("1.0", pathes[value]["description"])
@@ -141,27 +154,40 @@ def save_name_desc():
 button_save = Button(master=frame_listboxes, text="Save name and description!", command=save_name_desc)
 button_save.place(x=720, y=360)
 
-copy_in_appdata = ""
-copy_out_appdata = ""
-
 def move_right():
-    print("Left to right")
+    global copy_in_appdata, copy_out_appdata
     number = listbox_left.curselection()
     name = listbox_left.get(ANCHOR)
-    print(name)
-    listbox_left.delete(number)
     size = listbox_right.size()
-    listbox_right.insert(size, name)
-    #need to put in variable what you need to copy!
 
+    if copy_in_appdata == pathes[name]["path"]:
+        copy_in_appdata = ""
+        listbox_left.delete(number)
+        listbox_right.insert(size, name)
+    else:
+        copy_out_appdata = pathes[name]["name"]
+        listbox_left.delete(number)
+        listbox_right.insert(size, name)
+    
 def move_left():
-    print("Right to left")
+    global copy_in_appdata, copy_out_appdata
     number = listbox_right.curselection()
     name = listbox_right.get(ANCHOR)
-    print(name)
-    listbox_right.delete(number)
     size = listbox_left.size()
-    listbox_left.insert(size, name)
+
+    if size == 0: #only copy file if left listbox is empty
+        if copy_out_appdata == pathes[name]["path"]:
+            copy_out_appdata = name
+            copy_in_appdata = ""
+            listbox_right.delete(number)
+            listbox_left.insert(size, name)
+        else:
+            listbox_right.delete(number)
+            listbox_left.insert(size, name)
+        
+            copy_in_appdata = pathes[name]["path"] 
+    else:
+        log_post("Only one savegame can be active.")
 
 button_left = Button(master=frame_listboxes, text="<", command=move_left)
 button_left.place(x=355, y=0)
@@ -240,11 +266,11 @@ def savegame_start_scan2():
                 
                 with open(path) as json_file:
                     data = json.load(json_file)
-                listbox_left.insert(0, data["name"])
+                listbox_right.insert(0, data["name"])
                 for_saving = {"name" : data["name"], "description" : data["description"],"path" : folder_path}
                 pathes[data["name"]] = for_saving
             else: #when no json exist
-                listbox_left.insert(0, items)
+                listbox_right.insert(0, items)
                 for_saving = {"name" : items,"path" : folder_path}
                 pathes[items] = for_saving        
 
