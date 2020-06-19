@@ -84,19 +84,19 @@ def listbox_left_selected(evt):
     index = listbox_left.curselection()
     value = listbox_left.get(index)
     
-    #listbox_left.selection_clear(0, END)
-
     label_savegame_name.config(text=value)
-    #pathes[value]
+    
+    print(pathes[value])
+
+    text_description.delete(1.0,END)
+    text_description.insert("1.0", pathes[value]["description"])
 
 def listbox_right_selected(evt):
     listbox_right = evt.widget
     index = listbox_right.curselection()
-    #print("INDEX RECHTS" + str(index))
+
     value = listbox_right.get(index)
     
-    #listbox_left.selection_clear(0, END)
-    print(pathes)
     label_savegame_name.config(text=value)
 
     text_description.delete(1.0,END)
@@ -188,44 +188,11 @@ scrollbar_log.place(x=675, y=25, height=125)
 scrollbar_log.config(command=text_log.yview)
 text_log.config(yscrollcommand= scrollbar_log.set)
 
-def savegame_start_scan():
-    storage = []
-    storage = scan.scan("savegames")
-
-    for items in storage:
-        log_post("Found savegame: " + items)
-        listbox_right.insert(0, items)
-        
-        path = os.path.join("savegames" , items)
-
-        properties = {"path" : path}
-        pathes[items] = properties
-
-    path = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech")
-    log_post("Get savegame path: " + path)
-
-    savegames = []
-    savegames = scan.scan(path)
-
-    for items in savegames:
-        log_post("Found savegame: " + items)
-
-        if items == "My Summer Car":
-            listbox_left.insert(0, items)
-        else:
-            listbox_right.insert(0, items)
-        
-        path_savegame = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech",items)
-        properties = {"path" : path_savegame}
-        pathes[items] = properties
-        
-    print(pathes)
-
 def savegame_start_scan2():
     storage = []
     storage = scan.scan("savegames")
 
-    for items in storage:
+    for items in storage: #load all savegames in the passive folder
         folder_path = os.path.join("savegames" , items)
 
         path = os.path.join(folder_path, "savegame_switcher_data.json")
@@ -238,8 +205,48 @@ def savegame_start_scan2():
             pathes[data["name"]] = for_saving
         else:
             listbox_right.insert(0, items)
-        
-        #Einprogrammieren Entscheidung, wenn gefunden lesen, wenn nicht gefunden Standartnamen ballern
+            for_saving = {"name" : items,"path" : folder_path} 
+            pathes[items] = for_saving
+    
+    path_appdata = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech")
+    
+    savegames = []
+    savegames = scan.scan(path_appdata)
+
+    for items in savegames:
+        folder_path = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech", items)
+        if items == "My Summer Car": #when dictonary named "My Summer Car"
+            file_name = "savegame_switcher_data.json"
+            path = os.path.join(folder_path, file_name)
+
+            if os.path.exists(path): #when json exists
+                
+                with open(path) as json_file:
+                    data = json.load(json_file)
+                listbox_left.insert(0, data["name"])
+                for_saving = {"name" : data["name"], "description" : data["description"],"path" : folder_path}
+                pathes[data["name"]] = for_saving
+            else: #when no json exist
+                listbox_left.insert(0, items)
+                for_saving = {"name" : items,"path" : folder_path}
+                pathes[items] = for_saving             
+
+        else: # when dictonary is not named "My Summer Car"
+
+            file_name = items + "\savegame_switcher_data.json"
+            path = os.path.join(folder_path, file_name)
+
+            if os.path.exists(path): #when json exists
+                
+                with open(path) as json_file:
+                    data = json.load(json_file)
+                listbox_left.insert(0, data["name"])
+                for_saving = {"name" : data["name"], "description" : data["description"],"path" : folder_path}
+                pathes[data["name"]] = for_saving
+            else: #when no json exist
+                listbox_left.insert(0, items)
+                for_saving = {"name" : items,"path" : folder_path}
+                pathes[items] = for_saving        
 
 savegame_start_scan2()
 log_post("Savegame Switcher started!")
