@@ -96,8 +96,11 @@ def listbox_right_selected(evt):
     value = listbox_right.get(index)
     
     #listbox_left.selection_clear(0, END)
-
+    print(pathes)
     label_savegame_name.config(text=value)
+
+    text_description.delete(1.0,END)
+    text_description.insert("1.0", pathes[value]["description"])
 
 listbox_left.bind('<<ListboxSelect>>', listbox_left_selected) #bind: when you select a item the function will start
 listbox_right.bind('<<ListboxSelect>>', listbox_right_selected)
@@ -126,7 +129,7 @@ def save_name_desc():
         listbox_right.insert(right, new_name)
 
     basic_path = pathes[new_name]["path"]
-    path_a_name = os.path.join(basic_path, new_name)
+    path_a_name = os.path.join(basic_path, "savegame_switcher_data")
     file_save = path_a_name + ".json"
     for_json = {"name" : new_name, "description" : new_description} #make the dictonary that we store
     
@@ -218,7 +221,27 @@ def savegame_start_scan():
         
     print(pathes)
 
-savegame_start_scan()
+def savegame_start_scan2():
+    storage = []
+    storage = scan.scan("savegames")
+
+    for items in storage:
+        folder_path = os.path.join("savegames" , items)
+
+        path = os.path.join(folder_path, "savegame_switcher_data.json")
+
+        if os.path.exists(path):
+            with open(path) as json_file:
+                data = json.load(json_file)
+            listbox_right.insert(0, data["name"])
+            for_saving = {"name" : data["name"], "description" : data["description"],"path" : folder_path}
+            pathes[data["name"]] = for_saving
+        else:
+            listbox_right.insert(0, items)
+        
+        #Einprogrammieren Entscheidung, wenn gefunden lesen, wenn nicht gefunden Standartnamen ballern
+
+savegame_start_scan2()
 log_post("Savegame Switcher started!")
 
 window.mainloop()
