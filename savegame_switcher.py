@@ -35,18 +35,38 @@ copy_in_appdata = ""
 copy_out_appdata = ""
 
 def save():
-    #print("save")
-    #print("Copy in appdata: " + copy_in_appdata)
-    #print("Copy out appdata: " + copy_out_appdata)
+    global copy_in_appdata, copy_out_appdata
+    print("save")
+    print("Copy in appdata: " + copy_in_appdata)
+    print("Copy out appdata: " + copy_out_appdata)
 
-    path_appdata = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech", "My Summer Car")
-    path_savegames = os.path.join("savegames", copy_out_appdata) #os.path.basename(os.path.normpath(copy_out_appdata)))
+    path_appdata_in = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech")
 
-    #print("Path appdata: " + path_appdata)
-    #print("Path savegames: " + path_savegames)
-    print(copy_out_appdata)
-    #shutil.move(copy_in_appdata, path_appdata)
-    shutil.move(copy_out_appdata, path_savegames)
+    if copy_in_appdata != "":
+        split_copy_in = copy_in_appdata.split(os.sep)
+        split_copy_in = split_copy_in[1]
+        path_appdata_rename_from = os.path.join(path_appdata_in, split_copy_in)
+
+    path_appdata_rename_to = os.path.join(path_appdata_in, "My Summer Car")
+    path_appdata_out = os.path.join("C:\\","Users",os.getlogin(),"AppData","LocalLow","Amistech", "My Summer Car")
+    path_savegames = os.path.join(os.getcwd(), "savegames", copy_out_appdata)
+
+    if copy_out_appdata == "":
+        print("dont copy out")
+    else:
+        print("copy out")
+        print("Copy out:path_savegames:" + path_savegames)
+        shutil.move(path_appdata_out, path_savegames)
+        copy_out_appdata = ""
+    if copy_in_appdata == "":
+        print("dont copy in")
+    else:
+        print("copy in")
+        print("Copy in:path_appdata_in:" + path_appdata_in)
+        print("Copy in:path_appdata_rename_to:" + path_appdata_rename_to)
+        shutil.move(copy_in_appdata, path_appdata_in)
+        shutil.move(path_appdata_rename_from, path_appdata_rename_to)
+        copy_in_appdata = ""
 
 #frames
 frame_lettering = Frame(master=window, )#bg="red")
